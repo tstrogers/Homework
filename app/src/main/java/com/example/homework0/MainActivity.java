@@ -1,19 +1,16 @@
 package com.example.homework0;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-
 import android.Manifest;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.Log;
-
+import android.widget.TextView;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -25,10 +22,15 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.text.MessageFormat;
+
 
 public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient locationClient;
     private LocationRequest locationRequest;
+    TextView locationTextView;
+    private double speedms = 0.0;
+    private double speedmph = 0.0;
     //private LocationResult locationResult;
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
@@ -37,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             for(Location location: locationResult.getLocations()){
-                Log.d(TAG, "OnLocationResult: "+location.toString());
+                speedms = location.getSpeed();
+                speedmph = speedms * 2.23694;
+                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: {2} Speed(mph): {3}", location.getLatitude(),
+                        location.getLongitude(), location.getAccuracy(), speedmph));
             }
         }
     };
@@ -46,9 +51,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "test");
+        locationTextView = findViewById(R.id.location_text);
         locationClient = LocationServices.getFusedLocationProviderClient(this);
-        //locationRequest = LocationRequest.create();
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
                 .setIntervalMillis(4000)
                 .setMinUpdateIntervalMillis(2000)
@@ -61,15 +65,13 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission();
-        } else {
             getLastLocation();
-            //startLocationUpdates();
         }
     }
     @Override
     protected void onResume() {
         super.onResume();
-        //if (requestingLocationUpdates)
+        startLocationUpdates();
     }
     @Override
     protected void onStop(){
@@ -88,9 +90,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(Location location) {
                 if (location != null) {
-                    Log.d(TAG, "success " + location);
-                    Log.d(TAG, "success " + location.getLatitude());
-                    Log.d(TAG, "success " + location.getLongitude());
                     startLocationUpdates();
                 } else {
                     getLastLocation();
@@ -100,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
         locationTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.d(TAG, "Failure");
                 if (e instanceof ResolvableApiException) {
                     ResolvableApiException apiException = (ResolvableApiException) e;
                     try {
@@ -132,3 +130,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 }
+//References:
+//https://developer.android.com/reference/android/location/LocationRequest.Builder
+//https://stackoverflow.com/questions/70874702/android-locationrequest-is-private
+//https://www.youtube.com/watch?v=4eWoXPSpA5Y&list=PLdHg5T0SNpN3GBUmpGqjiKGMcBaRT2A-m&index=2
+//https://www.youtube.com/watch?v=rNYaEFl6Fms&list=PLdHg5T0SNpN3GBUmpGqjiKGMcBaRT2A-m&index=1
+//https://developer.android.com/training/location/change-location-settings
+//https://stackoverflow.com/questions/64009427/how-can-i-get-continuous-location-updates-in-android
