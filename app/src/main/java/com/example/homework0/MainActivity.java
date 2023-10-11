@@ -38,17 +38,34 @@ public class MainActivity extends AppCompatActivity {
     //private Button pauseBtn;
     //private Button helpBtn;
     //private LocationResult locationResult;
+    private boolean testMode = false;
+    private Button testButton;
+    private double testLat =  42.3601;
+    private double testLong = -71.0589;
+    private double fakeSpeedMph = 10.0;
+
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             if (locationResult == null){
                 return;
             }
-            for(Location location: locationResult.getLocations()){
-                speedms = location.getSpeed();
-                speedmph = speedms * 2.23694;
-                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: {2} Speed(mph): {3}", location.getLatitude(),
-                        location.getLongitude(), location.getAccuracy(), speedmph));
+            if (testMode == true) {
+                double timeHours = 4.0 / 3600.0; //for update interval of 4 seconds
+                double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
+                double changeLong = distanceMiles / 52.3; //52.3 is the approx. number of miles per 1 degree of longitude at latitude 42.3601
+                double newLat = testLat;
+                double newLong = testLong + changeLong;
+
+                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: Test Speed(mph): {2}", newLat, newLong, fakeSpeedMph));
+            }
+            else {
+                for (Location location : locationResult.getLocations()) {
+                    speedms = location.getSpeed();
+                    speedmph = speedms * 2.23694;
+                    locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: {2} Speed(mph): {3}", location.getLatitude(),
+                            location.getLongitude(), location.getAccuracy(), speedmph));
+                }
             }
         }
     };
@@ -91,6 +108,13 @@ public class MainActivity extends AppCompatActivity {
                 .setIntervalMillis(4000)
                 .setMinUpdateIntervalMillis(2000)
                 .build();
+
+        testButton = (Button)findViewById(R.id.button_test);
+        testButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                testMode = !testMode;  // Toggle testMode
+            }
+        });
 
     }
 
