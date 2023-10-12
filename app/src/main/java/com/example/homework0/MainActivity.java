@@ -31,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient locationClient;
     private LocationRequest locationRequest;
     TextView locationTextView;
+    TextView speedTextView;
+    TextView latTextView;
+    TextView lonTextView;
+    TextView accTextView;
     private double speedms = 0.0;
     private double speedmph = 0.0;
     //private boolean isOn = false;
@@ -59,18 +63,38 @@ public class MainActivity extends AppCompatActivity {
                 double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
                 double changeLong = distanceMiles / 51.05; //approx. number of miles per 1 degree of longitude at latitude 42.3601
                 testLong += changeLong;
-                testLat += 0.00; //for testing of calculations and color coding
+                testLat += 0.0; //for testing of calculations and color coding
                 double distance = haversineDistance(prevTestLat, prevTestLong, testLat, testLong);
                 double calculatedSpeed = distance / timeHours;
 
-                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: Test Speed(mph): {2}", testLat, testLong, calculatedSpeed));
+                latTextView.setText(MessageFormat.format("Lat: {0}", testLat));
+                lonTextView.setText(MessageFormat.format("Lon: {0}", testLong));
+                accTextView.setText("Accuracy: Test");
+                speedTextView.setText(MessageFormat.format("Speed: {0}", calculatedSpeed));
+
+                if (calculatedSpeed < 5) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.slow_speed));
+                } else if (calculatedSpeed >= 5 && calculatedSpeed < 20) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.medium_speed));
+                } else {
+                    speedTextView.setTextColor(getResources().getColor(R.color.fast_speed));
+                }
             }
             else {
                 for (Location location : locationResult.getLocations()) {
                     speedms = location.getSpeed();
                     speedmph = speedms * 2.23694;
-                    locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: {2} Speed(mph): {3}", location.getLatitude(),
-                            location.getLongitude(), location.getAccuracy(), speedmph));
+                    latTextView.setText(MessageFormat.format("Lat: {0}", location.getLatitude()));
+                    lonTextView.setText(MessageFormat.format("Lon: {0}", location.getLongitude()));
+                    accTextView.setText(MessageFormat.format("Accuracy: {0}", location.getAccuracy()));
+                    speedTextView.setText(MessageFormat.format("Speed: {0}", speedmph));
+                }
+                if (speedmph < 5) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.slow_speed));
+                } else if (speedmph >= 5 && speedmph < 20) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.medium_speed));
+                } else {
+                    speedTextView.setTextColor(getResources().getColor(R.color.fast_speed));
                 }
             }
         }
@@ -122,6 +146,11 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
         locationTextView = findViewById(R.id.location_text);
+        latTextView = findViewById(R.id.latitude_text);
+        lonTextView = findViewById(R.id.longitude_text);
+        speedTextView = findViewById(R.id.speed_text);
+        accTextView = findViewById(R.id.accuracy_text);
+
         locationClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
                 .setIntervalMillis(4000)

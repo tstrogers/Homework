@@ -2,4 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="slow_speed">#DD0000</color> <!-- red for slow -->
+    <color name="medium_speed">#DDDD00</color> <!-- yellow for medium -->
+    <color name="fast_speed">#00DD00</color> <!-- green for fast -->
 </resources>
