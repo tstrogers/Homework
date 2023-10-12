@@ -43,12 +43,16 @@ public class MainActivity extends AppCompatActivity {
     //private Button helpBtn;
     //private LocationResult locationResult;
     private boolean testMode = false;
+    private boolean kmMode = false;
     private Button testButton;
+    private Button unitsButton;
+    private String unitsText = "mph";
     private double testLat =  42.3601;
     private double prevTestLat = 42.3601;
     private double testLong = -71.0589;
     private double prevTestLong = -71.0589;
     private double fakeSpeedMph = 10.0;
+    private double speedResult = 0;
 
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
@@ -66,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
                 testLat += 0.0; //for testing of calculations and color coding
                 double distance = haversineDistance(prevTestLat, prevTestLong, testLat, testLong);
                 double calculatedSpeed = distance / timeHours;
+                if (kmMode) {
+                    calculatedSpeed *= 1.60934;
+                }
 
                 latTextView.setText(MessageFormat.format("Lat: {0}", testLat));
                 lonTextView.setText(MessageFormat.format("Lon: {0}", testLong));
@@ -83,18 +90,23 @@ public class MainActivity extends AppCompatActivity {
             else {
                 for (Location location : locationResult.getLocations()) {
                     speedms = location.getSpeed();
-                    speedmph = speedms * 2.23694;
+                    if (kmMode) {
+                        speedResult = speedms * 3.6;
+                    }
+                    else {
+                        speedResult = speedms * 2.23694;
+                    }
                     latTextView.setText(MessageFormat.format("Lat: {0}", location.getLatitude()));
                     lonTextView.setText(MessageFormat.format("Lon: {0}", location.getLongitude()));
                     accTextView.setText(MessageFormat.format("Accuracy: {0}", location.getAccuracy()));
-                    speedTextView.setText(MessageFormat.format("Speed: {0}", speedmph));
+                    speedTextView.setText(MessageFormat.format("Speed: {0} {1}", speedResult, unitsText));
                 }
                 if (speedmph < 5) {
-                    speedTextView.setTextColor(getResources().getColor(R.color.slow_speed));
+                    speedTextView.setTextColor(getResources().getColor(R.color.slow_speed, null));
                 } else if (speedmph >= 5 && speedmph < 20) {
-                    speedTextView.setTextColor(getResources().getColor(R.color.medium_speed));
+                    speedTextView.setTextColor(getResources().getColor(R.color.medium_speed, null));
                 } else {
-                    speedTextView.setTextColor(getResources().getColor(R.color.fast_speed));
+                    speedTextView.setTextColor(getResources().getColor(R.color.fast_speed, null));
                 }
             }
         }
@@ -158,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         testButton = (Button)findViewById(R.id.button_test);
+        unitsButton = (Button)findViewById(R.id.button_units);
         testButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view) {
                 testMode = !testMode;  // Toggle testMode
@@ -168,6 +181,18 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     testButton.setText("Enable Test Mode");
                 }
+            }
+        });
+        unitsButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                kmMode = !kmMode;
+
+                if (kmMode) {
+                    unitsText = "kmph";
+                } else {
+                    unitsText = "mph";
+                }
+                unitsButton.setText(unitsText);
             }
         });
 
