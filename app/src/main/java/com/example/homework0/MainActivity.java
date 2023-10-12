@@ -54,10 +54,9 @@ public class MainActivity extends AppCompatActivity {
                 double timeHours = 4.0 / 3600.0; //for update interval of 4 seconds
                 double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
                 double changeLong = distanceMiles / 52.3; //52.3 is the approx. number of miles per 1 degree of longitude at latitude 42.3601
-                double newLat = testLat;
-                double newLong = testLong + changeLong;
+                testLong += changeLong;
 
-                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: Test Speed(mph): {2}", newLat, newLong, fakeSpeedMph));
+                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: Test Speed(mph): {2}", testLat, testLong, fakeSpeedMph));
             }
             else {
                 for (Location location : locationResult.getLocations()) {
@@ -113,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         testButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view) {
                 testMode = !testMode;  // Toggle testMode
+                testLong = -71.0589; //reset test longitude
             }
         });
 
