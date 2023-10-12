@@ -41,7 +41,9 @@ public class MainActivity extends AppCompatActivity {
     private boolean testMode = false;
     private Button testButton;
     private double testLat =  42.3601;
+    private double prevTestLat = 42.3601;
     private double testLong = -71.0589;
+    private double prevTestLong = -71.0589;
     private double fakeSpeedMph = 10.0;
 
     private LocationCallback locationCallback = new LocationCallback() {
@@ -51,12 +53,17 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             if (testMode == true) {
+                prevTestLat = testLat;
+                prevTestLong = testLong;
                 double timeHours = 4.0 / 3600.0; //for update interval of 4 seconds
                 double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
-                double changeLong = distanceMiles / 52.3; //52.3 is the approx. number of miles per 1 degree of longitude at latitude 42.3601
+                double changeLong = distanceMiles / 51.05; //approx. number of miles per 1 degree of longitude at latitude 42.3601
                 testLong += changeLong;
+                testLat += 0.00; //for testing of calculations and color coding
+                double distance = haversineDistance(prevTestLat, prevTestLong, testLat, testLong);
+                double calculatedSpeed = distance / timeHours;
 
-                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: Test Speed(mph): {2}", testLat, testLong, fakeSpeedMph));
+                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: Test Speed(mph): {2}", testLat, testLong, calculatedSpeed));
             }
             else {
                 for (Location location : locationResult.getLocations()) {
@@ -69,6 +76,19 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
+        double R = 3958.8; // radius of Earth in miles
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        lat1 = Math.toRadians(lat1);
+        lat2 = Math.toRadians(lat2);
+
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,6 +133,12 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 testMode = !testMode;  // Toggle testMode
                 testLong = -71.0589; //reset test longitude
+
+                if (testMode) {
+                    testButton.setText("Disable Test Mode");
+                } else {
+                    testButton.setText("Enable Test Mode");
+                }
             }
         });
 
