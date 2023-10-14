@@ -33,10 +33,10 @@ public class MainActivity extends AppCompatActivity {
     TextView locationTextView;
     private double speedms = 0.0;
     private double speedmph = 0.0;
-    //private boolean isOn = false;
-    //private boolean askHelp = false;
-    //private Button pauseBtn;
-    //private Button helpBtn;
+    private boolean isOn = false;
+    private boolean askHelp = false;
+    private Button pauseBtn;
+    private Button helpBtn;
     //private LocationResult locationResult;
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
@@ -57,34 +57,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        pauseBtn = (Button)findViewById(R.id.button_pause);
-//        pauseBtn.setOnClickListener(new View.OnClickListener(){
-//            public void onClick(View view) {
-//                if (isOn == false){
-//                    onPause();
-//                    locationTextView.setText("App is paused");
-//                    isOn = true;
-//                }
-//                else if (isOn){
-//                    startLocationUpdates();
-//                    isOn = false;
-//                }
-//            }
-//        });
-//        helpBtn = (Button)findViewById(R.id.button_help);
-//        helpBtn.setOnClickListener(new View.OnClickListener(){
-//            public void onClick(View view) {
-//                if (askHelp == false){
-//                    onPause();
-//                    locationTextView.setText("This app displays the the location of the phone along with the speed at which the phone is traveling. To pause the updates, please click the pause button. To resume updates please click the pause button again. Click the help button to exit this window");
-//                    askHelp = true;
-//                }
-//                else if (askHelp){
-//                    startLocationUpdates();
-//                    askHelp = false;
-//                }
-//            }
-//        });
+        pauseBtn = (Button)findViewById(R.id.button_pause);
+        pauseBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                pauseButton();
+            }
+        });
+        helpBtn = (Button)findViewById(R.id.button_help);
+        helpBtn.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                helpButton();
+            }
+        });
         locationTextView = findViewById(R.id.location_text);
         locationClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
@@ -117,6 +101,28 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop(){
         super.onStop();
         stopLocationUpdates();
+    }
+    private void pauseButton(){
+        if (isOn == false){
+            onPause();
+            locationTextView.setText("App is paused");
+            isOn = true;
+        }
+        else if (isOn){
+            startLocationUpdates();
+            isOn = false;
+        }
+    }
+    private void helpButton(){
+        if (askHelp == false){
+            onPause();
+            locationTextView.setText("This app displays the the location of the phone along with the speed at which the phone is traveling. To pause the updates, please click the pause button. To resume updates please click the pause button again. Click the help button to exit this window");
+            askHelp = true;
+        }
+        else if (askHelp){
+            startLocationUpdates();
+            askHelp = false;
+        }
     }
 
 
