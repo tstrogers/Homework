@@ -10,6 +10,8 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
@@ -94,7 +96,18 @@ public class MainActivity extends AppCompatActivity {
     static double lowAlt = 0.0;
     static double highAcc = 0.0;
     static double lowAcc = 0.0;
+    private HandlerThread locationThread;
+    private Handler locationHandler;
 
+    private Runnable locationUpdateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                locationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+            }
+
+        }
+    };
 
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
@@ -566,11 +579,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        //initialize HandlerThread and Handler
+        locationThread = new HandlerThread("LocationThread");
+        locationThread.start();
+        Looper looper = locationThread.getLooper();
+        locationHandler = new Handler(looper);
+
         //Get permission for location information if necessary
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission();
             getLastLocation();
         }
+
     }
     @Override
     protected void onResume() {
@@ -724,7 +744,9 @@ public class MainActivity extends AppCompatActivity {
     }
     private void stopLocationUpdates(){
         locationClient.removeLocationUpdates(locationCallback);
-
+        //stop runnable
+        locationHandler.removeCallbacks(locationUpdateRunnable);
+        locationThread.quitSafely();
     }
     private void requestPermission(){
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
