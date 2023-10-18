@@ -1,5 +1,5 @@
 package com.example.homework0;
-//FROMGIT
+
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +24,6 @@ import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
@@ -53,12 +52,9 @@ public class MainActivity extends AppCompatActivity {
     private Button helpBtn;
     private Button resetBtn;
     private Button graphBtn;
-    //boolean timeStarted = false;
     Timer timer;
     TimerTask timerTask;
     Double time = 0.0;
-    //GraphView lineGraph;
-    //private LocationResult locationResult;
     public static LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
     private ArrayList<XYPair> xyPairArray = new ArrayList<>();
     private boolean testMode = false;
@@ -159,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     accTextView.setText(MessageFormat.format("Accuracy: {0}", location.getAccuracy()));
                     speedTextView.setText(MessageFormat.format("Speed: {0} {1}", speedResult, unitsSpeed));
                     altitudeText.setText(MessageFormat.format("Altitude: {0} {1}", location.getAltitude(), unitsDistance));
+                    //Latitudinal coordinates and respective time saved
                     xyPairArray.add(new XYPair(time,location.getLatitude()));
                     if (prevLocation != null) {
                         float[] results = new float[1];
@@ -201,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        //Get permission for location information if necessary
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission();
             getLastLocation();
@@ -224,31 +222,22 @@ public class MainActivity extends AppCompatActivity {
     }
     private void pauseButton(){
         if (isOn == false){
+            isOn = true;
             onPause();
-            //locationTextView.setText("App is paused");
             Intent intent = new Intent(MainActivity.this, PauseActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             startActivity(intent);
-            isOn = true;
-        }
-        else if (isOn){
             startLocationUpdates();
-//            Intent intent = new Intent(MainActivity.this, PauseActivity.class);
-//            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//            startActivity(intent);
             isOn = false;
         }
     }
     private void helpButton(){
         if (askHelp == false){
-            //onPause();
-            //locationTextView.setText("This app displays the the location of the phone along with the speed at which the phone is traveling. To pause the updates, please click the pause button. To resume updates please click the pause button again. Click the help button to exit this window");
+            askHelp = true;
+            stopLocationUpdates();
             Intent intent = new Intent(MainActivity.this, HelpActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
             startActivity(intent);
-            askHelp = true;
-        }
-        else if (askHelp){
             startLocationUpdates();
             askHelp = false;
         }
@@ -301,6 +290,7 @@ public class MainActivity extends AppCompatActivity {
         if(timerTask != null){
             timerTask.cancel();
             toolbarTextView.setText(formatTime(0,0,0));
+            //Reset time elapsed and latitudinal coordinates
             time = 0.0;
             startTimer();
             xyPairArray.clear();
@@ -312,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
+    //Ask for permission and get last location of device
     private void getLastLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             requestPermission();
@@ -362,6 +352,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
 
     }
+    //Starts time elapsed timer
     private void startTimer()
     {
         timerTask = new TimerTask()
@@ -482,7 +473,9 @@ public class MainActivity extends AppCompatActivity {
                 distanceButton.setText(unitsDistance);
             }
         });
+
         graphBtn.setOnClickListener(new View.OnClickListener() {
+            //Sorts and adds coordinates to be added to graph
             @Override
             public void onClick(View v) {
                 xyPairArray = sortArray(xyPairArray);
