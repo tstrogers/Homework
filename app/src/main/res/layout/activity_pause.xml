@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!--line graph view where we will
+        be displaying our data-->
+
+    <TextView
+        android:id="@+id/pause_msg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="174dp"
+        android:layout_marginBottom="389dp"
+        android:text="TextView" />
+
+    <Button
+        android:id="@+id/button_pausepg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="158dp"
+        android:layout_marginBottom="16dp"
+        android:text="Pause" />
+
+</RelativeLayout>
