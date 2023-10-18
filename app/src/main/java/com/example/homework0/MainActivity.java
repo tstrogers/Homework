@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             }
             if (testMode == true) {
                 prevLocation.setLatitude(testLocation.getLatitude());
-                prevLocation.setLongitude(testLocation.getLatitude());
+                prevLocation.setLongitude(testLocation.getLongitude());
                 prevLocation.setAltitude(testLocation.getAltitude());
                 double timeHours = 4.0 / 3600.0; //for update interval of 4 seconds
                 double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
@@ -755,9 +755,25 @@ public class MainActivity extends AppCompatActivity {
     }
     private String getTimerText(){
         int rounded = (int) Math.round(time);
+        //return total time in units specified by timeUnits
+        if (unitsTime == "seconds"){
+            return String.format("%02d s",rounded);
+        }
+        else if (unitsTime == "minutes"){
+            return String.format("%02d m",rounded/60);
+        }
+        else if (unitsTime == "hours"){
+            return String.format("%02d h",rounded/3600);
+        }
+        else if (unitsTime == "days"){
+            return String.format("%02d d",rounded/86400);
+        }
+
         int seconds = ((rounded%86400)%3600)%60;
         int minutes = ((rounded%86400)%3600)/60;
         int hours = ((rounded%86400)/3600);
+
+
 
         return formatTime(seconds,minutes,hours);
 
