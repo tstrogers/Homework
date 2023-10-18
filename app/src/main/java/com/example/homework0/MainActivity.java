@@ -467,6 +467,10 @@ public class MainActivity extends AppCompatActivity {
                     testButton.setText("Disable Test Mode");
                 } else {
                     testButton.setText("Enable Test Mode");
+                    //reset total distance traveled
+                    totalDistanceMeters = 0.0;
+                    prevLocation = null;
+                    distanceTextView.setText(MessageFormat.format("Distance: {0} meters", totalDistanceMeters));
                 }
             }
         });
