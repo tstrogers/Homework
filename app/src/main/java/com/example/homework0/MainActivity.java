@@ -77,6 +77,23 @@ public class MainActivity extends AppCompatActivity {
     private Location prevLocation = null;
     private double totalDistanceMeters = 0.0;
     private TextView distanceTextView;
+    private Button statsButton;
+    TextView altChangeText;
+    TextView latChangeText;
+    TextView lonChangeText;
+    TextView speedChangeText;
+    TextView accChangeText;
+    TextView distanceChangeText;
+    static double highLat = 0.0;
+    static double lowLat = 0.0;
+    static double highLong = 0.0;
+    static double lowLong = 0.0;
+    static double highSpeed = 0.0;
+    static double lowSpeed = 0.0;
+    static double highAlt = 0.0;
+    static double lowAlt = 0.0;
+    static double highAcc = 0.0;
+    static double lowAcc = 0.0;
 
 
     private LocationCallback locationCallback = new LocationCallback() {
@@ -88,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
             if (testMode == true) {
                 prevLocation.setLatitude(testLocation.getLatitude());
                 prevLocation.setLongitude(testLocation.getLatitude());
+                prevLocation.setAltitude(testLocation.getAltitude());
                 double timeHours = 4.0 / 3600.0; //for update interval of 4 seconds
                 double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
                 double changeLong = distanceMiles / 51.05; //approx. number of miles per 1 degree of longitude at latitude 42.3601
@@ -117,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                 lonTextView.setText(MessageFormat.format("Lon: {0}", testLocation.getLongitude()));
                 accTextView.setText("Accuracy: Test");
                 speedTextView.setText(MessageFormat.format("Speed: {0} {1}", calculatedSpeed, unitsSpeed));
-                altitudeText.setText(MessageFormat.format("Altitude: {0} {1}", testLocation.getAltitude()));
+                altitudeText.setText(MessageFormat.format("Altitude: {0} {1}", testLocation.getAltitude(), unitsDistance));
 
                 if (calculatedSpeed < 5) {
                     speedTextView.setTextColor(getResources().getColor(R.color.slow_speed, null));
@@ -125,6 +143,180 @@ public class MainActivity extends AppCompatActivity {
                     speedTextView.setTextColor(getResources().getColor(R.color.medium_speed, null));
                 } else {
                     speedTextView.setTextColor(getResources().getColor(R.color.fast_speed, null));
+                }
+                //check if current location is highest or lowest latitude, longitude, speed, altitude, or accuracy
+                if (testLocation.getLatitude() > highLat){
+                    highLat = testLocation.getLatitude();
+                }
+                if (testLocation.getLatitude() < lowLat){
+                    lowLat = testLocation.getLatitude();
+                }
+                if (testLocation.getLongitude() > highLong){
+                    highLong = testLocation.getLongitude();
+                }
+                if (testLocation.getLongitude() < lowLong){
+                    lowLong = testLocation.getLongitude();
+                }
+                if (calculatedSpeed > highSpeed){
+                    highSpeed = calculatedSpeed;
+                }
+                if (calculatedSpeed < lowSpeed){
+                    lowSpeed = calculatedSpeed;
+                }
+                if (testLocation.getAltitude() > highAlt){
+                    highAlt = testLocation.getAltitude();
+                }
+                if (testLocation.getAltitude() < lowAlt){
+                    lowAlt = testLocation.getAltitude();
+                }
+                if (testLocation.getAccuracy() > highAcc){
+                    highAcc = testLocation.getAccuracy();
+                }
+                if (testLocation.getAccuracy() < lowAcc){
+                    lowAcc = testLocation.getAccuracy();
+                }
+
+                //determine change between current and previous displayed data
+                //if change is positive, display "!" in green
+                //if change is negative, display "!" in red
+                //if change is 0, do not display anything
+                if (testLocation.getLatitude() > prevTestLat){
+                    latChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getLatitude() > prevTestLat * 1.1){
+                        latChangeText.setText("!!");
+                    }
+                    else {
+                        latChangeText.setText("!");
+                    }
+                }
+                else if (testLocation.getLatitude() < prevTestLat){
+                    latChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getLatitude() < prevTestLat * 0.9){
+                        latChangeText.setText("!!");
+                    }
+                    else {
+                        latChangeText.setText("!");
+                    }
+                }
+                else {
+                    latChangeText.setText("");
+                }
+                if (testLocation.getLongitude() > prevTestLong){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getLongitude() > prevTestLong * 1.1){
+                        lonChangeText.setText("!!");
+                    }
+                    else {
+                        lonChangeText.setText("!");
+                    }
+                    lonChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                }
+                else if (testLocation.getLongitude() < prevTestLong){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getLongitude() < prevTestLong * 0.9){
+                        lonChangeText.setText("!!");
+                    }
+                    else {
+                        lonChangeText.setText("!");
+                    }
+                    lonChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                }
+                else {
+                    lonChangeText.setText("");
+                }
+                if (calculatedSpeed > speedResult){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (calculatedSpeed > speedResult * 1.1){
+                        speedChangeText.setText("!!");
+                    }
+                    else {
+                        speedChangeText.setText("!");
+                    }
+                    speedChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                }
+                else if (calculatedSpeed < speedResult){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (calculatedSpeed < speedResult * 0.9){
+                        speedChangeText.setText("!!");
+                    }
+                    else {
+                        speedChangeText.setText("!");
+                    }
+                    speedChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                }
+                else {
+                    speedChangeText.setText("");
+                }
+                if (testLocation.getAltitude() > prevLocation.getAltitude()){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getAltitude() > prevLocation.getAltitude() * 1.1){
+                        altChangeText.setText("!!");
+                    }
+                    else {
+                        altChangeText.setText("!");
+                    }
+                    altChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                }
+                else if (testLocation.getAltitude() < prevLocation.getAltitude()){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getAltitude() < prevLocation.getAltitude() * 0.9){
+                        altChangeText.setText("!!");
+                    }
+                    else {
+                        altChangeText.setText("!");
+                    }
+                    altChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                }
+                else {
+                    altChangeText.setText("");
+                }
+                if (testLocation.getAccuracy() > prevLocation.getAccuracy()){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getAccuracy() > prevLocation.getAccuracy() * 1.1){
+                        accChangeText.setText("!!");
+                    }
+                    else {
+                        accChangeText.setText("!");
+                    }
+                    accChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                }
+                else if (testLocation.getAccuracy() < prevLocation.getAccuracy()){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (testLocation.getAccuracy() < prevLocation.getAccuracy() * 0.9){
+                        accChangeText.setText("!!");
+                    }
+                    else {
+                        accChangeText.setText("!");
+                    }
+                    accChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                }
+                else {
+                    accChangeText.setText("");
+                }
+                if (totalDistanceMeters > 0){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (totalDistanceMeters > 0.1){
+                        distanceChangeText.setText("!!");
+                    }
+                    else {
+                        distanceChangeText.setText("!");
+                    }
+                    distanceChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                }
+                else if (totalDistanceMeters < 0){
+                    // display !! if change magnitude more than 10% of previous value
+                    if (totalDistanceMeters < -0.1){
+                        distanceChangeText.setText("!!");
+                    }
+                    else {
+                        distanceChangeText.setText("!");
+                    }
+                    distanceChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                }
+                else {
+                    distanceChangeText.setText("");
                 }
             }
             else {
@@ -161,6 +353,182 @@ public class MainActivity extends AppCompatActivity {
                         float[] results = new float[1];
                         Location.distanceBetween(prevLocation.getLatitude(), prevLocation.getLongitude(), locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), results);
                         totalDistanceMeters += results[0];
+                    }
+                    //check if current location is highest or lowest latitude, longitude, speed, altitude, or accuracy
+                    if (location.getLatitude() > highLat){
+                        highLat = location.getLatitude();
+                    }
+                    if (location.getLatitude() < lowLat){
+                        lowLat = location.getLatitude();
+                    }
+                    if (location.getLongitude() > highLong){
+                        highLong = location.getLongitude();
+                    }
+                    if (location.getLongitude() < lowLong){
+                        lowLong = location.getLongitude();
+                    }
+                    if (calculatedSpeed > highSpeed){
+                        highSpeed = calculatedSpeed;
+                    }
+                    if (calculatedSpeed < lowSpeed){
+                        lowSpeed = calculatedSpeed;
+                    }
+                    if (altitude > highAlt){
+                        highAlt = altitude;
+                    }
+                    if (altitude < lowAlt){
+                        lowAlt = altitude;
+                    }
+                    if (location.getAccuracy() > highAcc){
+                        highAcc = location.getAccuracy();
+                    }
+                    if (location.getAccuracy() < lowAcc){
+                        lowAcc = location.getAccuracy();
+                    }
+
+                    //if prevLocation is not null: determine change between current and previous displayed data
+                    //if change is positive, display "!" in green
+                    //if change is negative, display "!" in red
+                    //if change is 0, do not display anything
+                    if (prevLocation != null){
+                        if (location.getLatitude() > prevLocation.getLatitude()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (location.getLatitude() > prevLocation.getLatitude() * 1.1){
+                                latChangeText.setText("!!");
+                            }
+                            else {
+                                latChangeText.setText("!");
+                            }
+                            latChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                        }
+                        else if (location.getLatitude() < prevLocation.getLatitude()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (location.getLatitude() < prevLocation.getLatitude() * 0.9){
+                                latChangeText.setText("!!");
+                            }
+                            else {
+                                latChangeText.setText("!");
+                            }
+                            latChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                        }
+                        else {
+                            latChangeText.setText("");
+                        }
+                        if (location.getLongitude() > prevLocation.getLongitude()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (location.getLongitude() > prevLocation.getLongitude() * 1.1){
+                                lonChangeText.setText("!!");
+                            }
+                            else {
+                                lonChangeText.setText("!");
+                            }
+                            lonChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                        }
+                        else if (location.getLongitude() < prevLocation.getLongitude()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (location.getLongitude() < prevLocation.getLongitude() * 0.9){
+                                lonChangeText.setText("!!");
+                            }
+                            else {
+                                lonChangeText.setText("!");
+                            }
+                            lonChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                        }
+                        else {
+                            lonChangeText.setText("");
+                        }
+                        if (calculatedSpeed > speedResult){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (calculatedSpeed > speedResult * 1.1){
+                                speedChangeText.setText("!!");
+                            }
+                            else {
+                                speedChangeText.setText("!");
+                            }
+                            speedChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                        }
+                        else if (calculatedSpeed < speedResult){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (calculatedSpeed < speedResult * 0.9){
+                                speedChangeText.setText("!!");
+                            }
+                            else {
+                                speedChangeText.setText("!");
+                            }
+                            speedChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                        }
+                        else {
+                            speedChangeText.setText("");
+                        }
+                        if (altitude > prevLocation.getAltitude()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (altitude > prevLocation.getAltitude() * 1.1){
+                                altChangeText.setText("!!");
+                            }
+                            else {
+                                altChangeText.setText("!");
+                            }
+                            altChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                        }
+                        else if (altitude < prevLocation.getAltitude()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (altitude < prevLocation.getAltitude() * 0.9){
+                                altChangeText.setText("!!");
+                            }
+                            else {
+                                altChangeText.setText("!");
+                            }
+                            altChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                        }
+                        else {
+                            altChangeText.setText("");
+                        }
+                        if (location.getAccuracy() > prevLocation.getAccuracy()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (location.getAccuracy() > prevLocation.getAccuracy() * 1.1){
+                                accChangeText.setText("!!");
+                            }
+                            else {
+                                accChangeText.setText("!");
+                            }
+                            accChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                        }
+                        else if (location.getAccuracy() < prevLocation.getAccuracy()){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (location.getAccuracy() < prevLocation.getAccuracy() * 0.9){
+                                accChangeText.setText("!!");
+                            }
+                            else {
+                                accChangeText.setText("!");
+                            }
+                            accChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                        }
+                        else {
+                            accChangeText.setText("");
+                        }
+                        if (totalDistanceMeters > 0){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (totalDistanceMeters > 0.1){
+                                distanceChangeText.setText("!!");
+                            }
+                            else {
+                                distanceChangeText.setText("!");
+                            }
+                            distanceChangeText.setTextColor(getResources().getColor(R.color.green, null));
+                        }
+                        else if (totalDistanceMeters < 0){
+                            // display !! if change magnitude more than 10% of previous value
+                            if (totalDistanceMeters < -0.1){
+                                distanceChangeText.setText("!!");
+                            }
+                            else {
+                                distanceChangeText.setText("!");
+                            }
+                            distanceChangeText.setTextColor(getResources().getColor(R.color.red, null));
+                        }
+                        else {
+                            distanceChangeText.setText("");
+                        }
                     }
                     prevLocation = location;
                 }
@@ -300,6 +668,17 @@ public class MainActivity extends AppCompatActivity {
         prevLocation = null;
         distanceTextView.setText(MessageFormat.format("Distance: {0} meters", totalDistanceMeters));
 
+        //reset highs and lows
+        highLat = 0.0;
+        lowLat = 0.0;
+        highLong = 0.0;
+        lowLong = 0.0;
+        highSpeed = 0.0;
+        lowSpeed = 0.0;
+        highAlt = 0.0;
+        lowAlt = 0.0;
+        highAcc = 0.0;
+        lowAcc = 0.0;
     }
 
     //Ask for permission and get last location of device
@@ -405,6 +784,13 @@ public class MainActivity extends AppCompatActivity {
         accTextView = findViewById(R.id.accuracy_text);
         distanceTextView = findViewById(R.id.distance_text);
         altitudeText = findViewById(R.id.altitude_text);
+        altChangeText = findViewById(R.id.alt_increase);
+        latChangeText = findViewById(R.id.lat_increase);
+        lonChangeText = findViewById(R.id.lon_increase);
+        speedChangeText = findViewById(R.id.spd_increase);
+        accChangeText = findViewById(R.id.acc_increase);
+        distanceChangeText = findViewById(R.id.dst_increase);
+        statsButton = findViewById(R.id.button_stats);
         locationClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
                 .setIntervalMillis(4000)
@@ -431,7 +817,13 @@ public class MainActivity extends AppCompatActivity {
                 helpButton();
             }
         });
-
+        statsButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, StatsActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+                startActivity(intent);
+            }
+        });
         resetBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) { resetButton();

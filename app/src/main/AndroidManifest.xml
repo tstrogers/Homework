@@ -38,6 +38,10 @@
             android:name=".HelpActivity"
             android:label="Homework0">
         </activity>
+        <activity
+            android:name=".StatsActivity"
+            android:label="Homework0">
+        </activity>
     </application>
 
 
