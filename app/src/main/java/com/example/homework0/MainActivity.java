@@ -5,8 +5,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -26,8 +24,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.jjoe64.graphview.GraphView;
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 
 
 import java.text.MessageFormat;
@@ -39,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
     private FusedLocationProviderClient locationClient;
     private LocationRequest locationRequest;
     TextView locationTextView;
+    TextView speedTextView;
+    TextView latTextView;
+    TextView lonTextView;
+    TextView accTextView;
     TextView toolbarTextView;
     TextView altitudeText;
     private double speedms = 0.0;
@@ -55,19 +55,130 @@ public class MainActivity extends AppCompatActivity {
     Double time = 0.0;
     GraphView lineGraph;
     //private LocationResult locationResult;
+    private boolean testMode = false;
+    private boolean kmMode = false;
+    private Button testButton;
+    private Button unitsButton;
+    private Button distanceButton;
+    private Button speedButton;
+    private Button timeButton;
+    private String unitsSpeed = "mph";
+    private String unitsTime = "seconds";
+    private String unitsDistance = "meters";
+    private double testLat =  42.3601;
+    private double prevTestLat = 42.3601;
+    private double testLong = -71.0589;
+    private double prevTestLong = -71.0589;
+    private Location testLocation;
+    private double fakeSpeedMph = 10.0;
+    private double speedResult = 0;
+    private Location prevLocation = null;
+    private double totalDistanceMeters = 0.0;
+    private TextView distanceTextView;
+
+
     private LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             if (locationResult == null){
                 return;
             }
-            for(Location location: locationResult.getLocations()){
-                speedms = location.getSpeed();
-                speedmph = speedms * 2.23694;
-                locationTextView.setText(MessageFormat.format("Lat: {0} Long: {1} Accuracy: {2} Speed(mph): {3} Altitude: {4}", location.getLatitude(),
-                        location.getLongitude(), location.getAccuracy(), speedmph, location.getAltitude()));
-                //altitudeText.setText(MessageFormat.format("{0}", location.getAltitude()));
+            if (testMode == true) {
+                prevLocation.setLatitude(testLocation.getLatitude());
+                prevLocation.setLongitude(testLocation.getLatitude());
+                double timeHours = 4.0 / 3600.0; //for update interval of 4 seconds
+                double distanceMiles = fakeSpeedMph * timeHours; //how many miles traveled each update
+                double changeLong = distanceMiles / 51.05; //approx. number of miles per 1 degree of longitude at latitude 42.3601
+                testLocation.setLongitude(prevLocation.getLongitude() + changeLong);
+                testLocation.setLatitude(prevLocation.getLatitude() + 0.0); //for testing of calculations and color coding
+                double calculatedSpeed = testLocation.getSpeed();
+                if (unitsSpeed == "kmph") {
+                    calculatedSpeed *= 1.60934;
+                }
+                else if (unitsSpeed == "mph"){
+                    calculatedSpeed *= 2.23694;
+                }
+                else if (unitsSpeed == "m/s"){
+                    calculatedSpeed *= 1;
+                }
+                else if (unitsSpeed == "miles/minute"){
+                    calculatedSpeed *= 2.23694;
+                    calculatedSpeed *= 60;
+                }
+
+                //calculate distance between prevLocation and testLocation and add to totalDistanceMeters
+                float[] results = new float[1];
+                Location.distanceBetween(prevLocation.getLatitude(), prevLocation.getLongitude(), testLocation.getLatitude(), testLocation.getLongitude(), results);
+                totalDistanceMeters += results[0];
+
+                latTextView.setText(MessageFormat.format("Lat: {0}", testLocation.getLatitude()));
+                lonTextView.setText(MessageFormat.format("Lon: {0}", testLocation.getLongitude()));
+                accTextView.setText("Accuracy: Test");
+                speedTextView.setText(MessageFormat.format("Speed: {0} {1}", calculatedSpeed, unitsSpeed));
+                altitudeText.setText(MessageFormat.format("Altitude: {0} {1}", testLocation.getAltitude()));
+
+                if (calculatedSpeed < 5) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.slow_speed, null));
+                } else if (calculatedSpeed >= 5 && calculatedSpeed < 20) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.medium_speed, null));
+                } else {
+                    speedTextView.setTextColor(getResources().getColor(R.color.fast_speed, null));
+                }
             }
+            else {
+                for (Location location : locationResult.getLocations()) {
+                speedms = location.getSpeed();
+                double calculatedSpeed = speedms;
+                    if (unitsSpeed == "kmph") {
+                        calculatedSpeed *= 1.60934;
+                    }
+                    else if (unitsSpeed == "mph"){
+                        calculatedSpeed *= 2.23694;
+                    }
+                    else if (unitsSpeed == "miles/minute"){
+                        calculatedSpeed *= 2.23694;
+                        calculatedSpeed *= 60;
+                    }
+
+                    double altitude = location.getAltitude();
+                    if (unitsDistance == "km"){
+                        altitude /= 1000;
+                    } else if (unitsDistance == "miles"){
+                        altitude /= 1609.34;
+                    } else if (unitsDistance == "feet"){
+                        altitude /= 0.3048;
+                    }
+                    latTextView.setText(MessageFormat.format("Lat: {0}", location.getLatitude()));
+                    lonTextView.setText(MessageFormat.format("Lon: {0}", location.getLongitude()));
+                    accTextView.setText(MessageFormat.format("Accuracy: {0}", location.getAccuracy()));
+                    speedTextView.setText(MessageFormat.format("Speed: {0} {1}", speedResult, unitsSpeed));
+                    altitudeText.setText(MessageFormat.format("Altitude: {0} {1}", location.getAltitude(), unitsDistance));
+                    if (prevLocation != null) {
+                        float[] results = new float[1];
+                        Location.distanceBetween(prevLocation.getLatitude(), prevLocation.getLongitude(), locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude(), results);
+                        totalDistanceMeters += results[0];
+                    }
+                    prevLocation = location;
+                }
+                if (speedmph < 5) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.slow_speed, null));
+                } else if (speedmph >= 5 && speedmph < 20) {
+                    speedTextView.setTextColor(getResources().getColor(R.color.medium_speed, null));
+                } else {
+                    speedTextView.setTextColor(getResources().getColor(R.color.fast_speed, null));
+                }
+            }
+            //display total distance traveled in selected units
+            double totalDistance = totalDistanceMeters;
+            if (unitsDistance == "km"){
+                totalDistance /= 1000;
+            } else if (unitsDistance == "miles"){
+                totalDistance /= 1609.34;
+            } else if (unitsDistance == "feet"){
+                totalDistance /= 0.3048;
+            }
+
+            distanceTextView.setText(MessageFormat.format("Distance: {0} {1}", totalDistance, unitsDistance));
         }
     };
 
@@ -127,6 +238,49 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setUnitsSpeed(){
+        if (unitsSpeed == "kmph"){
+            unitsSpeed = "mph";
+        }
+        else if (unitsSpeed == "mph"){
+            unitsSpeed = "m/s";
+        }
+        else if (unitsSpeed == "m/s"){
+            unitsSpeed = "miles/minute";
+        }
+        else if (unitsSpeed == "miles/minute"){
+            unitsSpeed = "kmph";
+        }
+    }
+    private void setUnitsTime(){
+        if (unitsTime == "seconds"){
+            unitsTime = "minutes";
+        }
+        else if (unitsTime == "minutes"){
+            unitsTime = "hours";
+        }
+        else if (unitsTime == "hours"){
+            unitsTime = "days";
+        }
+        else if (unitsTime == "days"){
+            unitsTime = "seconds";
+        }
+    }
+    private void setUnitsDistance(){
+        if (unitsDistance == "meters"){
+            unitsDistance = "km";
+        }
+        else if (unitsDistance == "km"){
+            unitsDistance = "miles";
+        }
+        else if (unitsDistance == "miles"){
+            unitsDistance = "feet";
+        }
+        else if (unitsDistance == "feet"){
+            unitsDistance = "meters";
+        }
+    }
+
     private void resetButton(){
         if(timerTask != null){
             timerTask.cancel();
@@ -134,6 +288,10 @@ public class MainActivity extends AppCompatActivity {
             time = 0.0;
             startTimer();
         }
+        //reset total distance traveled
+        totalDistanceMeters = 0.0;
+        prevLocation = null;
+        distanceTextView.setText(MessageFormat.format("Distance: {0} meters", totalDistanceMeters));
 
 //        AlertDialog.Builder resetAlert = new AlertDialog.Builder(MainActivity.this);
 //        resetAlert.setTitle("Reset Timer");
@@ -254,14 +412,27 @@ public class MainActivity extends AppCompatActivity {
         pauseBtn = (Button)findViewById(R.id.button_pause);
         helpBtn = (Button)findViewById(R.id.button_help);
         resetBtn = (Button)findViewById(R.id.button_reset);
+        testButton = (Button)findViewById(R.id.button_test);
+        speedButton = (Button)findViewById(R.id.button_speed);
+        timeButton = (Button)findViewById(R.id.button_time);
+        distanceButton = (Button)findViewById(R.id.button_distance);
         toolbarTextView = findViewById(R.id.toolbar_time_value);
         locationTextView = findViewById(R.id.location_text);
-        altitudeText = findViewById(R.id.altitudevalue);
+        latTextView = findViewById(R.id.latitude_text);
+        lonTextView = findViewById(R.id.longitude_text);
+        speedTextView = findViewById(R.id.speed_text);
+        accTextView = findViewById(R.id.accuracy_text);
+        distanceTextView = findViewById(R.id.distance_text);
+        altitudeText = findViewById(R.id.altitude_text);
         locationClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
                 .setIntervalMillis(4000)
                 .setMinUpdateIntervalMillis(2000)
                 .build();
+        testLocation = new Location("Test");
+        testLocation.setLatitude(42.3601);
+        testLocation.setLongitude(-71.0589);
+        testLocation.setSpeed((float) fakeSpeedMph);
         timer = new Timer();
         startTimer();
 
@@ -284,6 +455,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) { resetButton();
 
+            }
+        });
+        testButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                testMode = !testMode;  // Toggle testMode
+                testLocation.setLatitude(testLat);
+                testLocation.setLongitude(testLong);
+
+                if (testMode) {
+                    testButton.setText("Disable Test Mode");
+                } else {
+                    testButton.setText("Enable Test Mode");
+                }
+            }
+        });
+        speedButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                setUnitsSpeed();
+                speedButton.setText(unitsSpeed);
+            }
+        });
+        timeButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                setUnitsTime();
+                timeButton.setText(unitsTime);
+            }
+        });
+        distanceButton.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View view) {
+                setUnitsDistance();
+                distanceButton.setText(unitsDistance);
             }
         });
 //        graphBtn.setOnClickListener(new View.OnClickListener() {
